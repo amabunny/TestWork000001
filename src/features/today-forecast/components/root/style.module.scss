@@ -1,0 +1,9 @@
+@use "@/styles/media" as media;
+
+.citySelect {
+  width: 100%;
+
+  @include media.media-breakpoint-up(lg) {
+    width: 600px;
+  }
+}
