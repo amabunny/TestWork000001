@@ -85,7 +85,7 @@ export interface ForecastResponse {
 }
 
 // Интерфейс для каждой записи прогноза
-interface ForecastEntry {
+export interface ForecastEntry {
   dt: number; // Временная метка в формате Unix
   main: MainWeather; // Основные параметры погоды
   weather: Weather[]; // Массив погодных условий
