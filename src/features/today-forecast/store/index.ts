@@ -1,36 +1,51 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { IAddressResponseItem } from "@/types/dadata";
-import { IOpenWeatherForecast } from "@/types/open-weather";
-import { currentForecastsWeather } from "@/services/open-weather";
+import { CurrentWeatherResponse, ForecastResponse } from "@/types/open-weather";
+import {
+  currentForecastWeather,
+  hourlyForecastWeather,
+} from "@/services/open-weather";
+import { Location } from "@/types/oxilor";
 
 interface WeatherStore {
-  selectedCity: IAddressResponseItem | null;
-  setSelectedCity: (city: IAddressResponseItem | null) => void;
+  selectedCity: Location | null;
+  setSelectedCity: (city: Location | null) => void;
   fetchWeather: () => void;
-  forecast: IOpenWeatherForecast | null;
+  todayForecast: CurrentWeatherResponse | null;
+  hourlyForecast: ForecastResponse | null;
 }
 
 export const useWeatherStore = create<WeatherStore>()(
   devtools(
-    (setState, getState) => {
-      const fetchWeather = async (city: IAddressResponseItem) => {
-        const result = await currentForecastsWeather(
-          city.geo_lat,
-          city.geo_lon,
+    (setState) => {
+      const fetchWeather = async (city: Location) => {
+        const today = await currentForecastWeather(
+          city.latitude.toString(),
+          city.longitude.toString(),
+        );
+        const hourly = await hourlyForecastWeather(
+          city.latitude.toString(),
+          city.longitude.toString(),
         );
 
-        setState({ forecast: result });
+        setState({ todayForecast: today, hourlyForecast: hourly });
       };
 
       return {
         selectedCity: null,
-        forecast: null,
+        hourlyForecast: null,
+        todayForecast: null,
         fetchWeather,
         setSelectedCity: (city) => {
           setState({ selectedCity: city });
           if (city) {
             void fetchWeather(city);
+          } else {
+            setState({
+              hourlyForecast: null,
+              todayForecast: null,
+            });
           }
         },
       };

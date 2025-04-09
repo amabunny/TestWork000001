@@ -3,14 +3,14 @@
 import { Form } from "react-bootstrap";
 import styles from "./style.module.scss";
 import { AsyncSelect, AsyncSelectProps } from "@/ui";
-import { useCallback, useState } from "react";
-import { fetchAddresses } from "@/services/api/dadata";
-import { IAddressResponseItem } from "@/types/dadata";
+import { useCallback } from "react";
+import { searchRegions } from "@/services/oxilor";
 import { GroupBase } from "react-select";
 import debounce from "debounce-promise";
 import { useWeatherStore } from "../../store";
+import { Location } from "@/types/oxilor";
 
-const getOptions = debounce(fetchAddresses, 1000);
+const getOptions = debounce(searchRegions, 1000);
 
 export const TodayForecast = () => {
   const selectedCity = useWeatherStore((state) => state.selectedCity);
@@ -18,11 +18,7 @@ export const TodayForecast = () => {
 
   const loadOptions = useCallback<
     NonNullable<
-      AsyncSelectProps<
-        IAddressResponseItem,
-        false,
-        GroupBase<IAddressResponseItem>
-      >["loadOptions"]
+      AsyncSelectProps<Location, false, GroupBase<Location>>["loadOptions"]
     >
   >((inputValue) => getOptions(inputValue), []);
 
@@ -35,7 +31,16 @@ export const TodayForecast = () => {
           placeholder={"Введите название города"}
           noOptionsMessage={() => "Нет доступных городов"}
           loadOptions={loadOptions}
-          getOptionLabel={(option: IAddressResponseItem) => option.result}
+          getOptionLabel={(option) =>
+            option.parentRegions.length > 0
+              ? option.parentRegions
+                  .map((region) => region.name)
+                  .reverse()
+                  .join(", ") +
+                ", " +
+                option.name
+              : option.name
+          }
           isClearable={true}
           loadingMessage={() => "Загрузка..."}
           onChange={(option) => setSelectedCity(option)}
